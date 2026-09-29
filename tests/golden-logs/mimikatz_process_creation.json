@@ -1,0 +1,10 @@
+{
+    "EventID": 1,
+    "Image": "C:\\Users\\attacker\\Desktop\\mimikatz.exe",
+    "CommandLine": "mimikatz.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" exit",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe",
+    "User": "CORP\\admin",
+    "OriginalFileName": "mimikatz.exe",
+    "Hashes": "SHA256=FAKE_HASH_FOR_TESTING",
+    "Computer": "WORKSTATION-01"
+}

@@ -48,6 +48,12 @@ jobs:
         run: |
           echo "=== Converting Sigma rules to SIEM queries ==="
           python scripts/convert.py
+
+      # Step 5.5: Test rules against golden logs
+      - name: Test against golden logs
+        run: |
+          echo "=== Testing rules against golden attack logs ==="
+          python scripts/test_rules.py
       
       # Step 6: Generate MITRE coverage report
       - name: Generate MITRE coverage

