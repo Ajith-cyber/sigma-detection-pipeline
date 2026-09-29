@@ -1,0 +1,35 @@
+title: Suspicious Scheduled Task Created for Persistence
+id: d5a38e26-8c9b-4d3f-a7e2-3f1b5c8d9e0a
+status: test
+description: |
+    Detects creation of scheduled tasks that execute from suspicious
+    paths (Temp, AppData, Downloads). Attackers use scheduled tasks
+    to survive reboots — the task runs their malware automatically.
+references:
+    - https://attack.mitre.org/techniques/T1053/005/
+author: YourName
+date: 2026/09/25
+tags:
+    - attack.persistence
+    - attack.t1053.005
+    - attack.execution
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\schtasks.exe'
+        CommandLine|contains: '/create'
+    suspicious_path:
+        CommandLine|contains:
+            - '\Temp\'
+            - '\AppData\Local\Temp\'
+            - '\Downloads\'
+            - '\Users\Public\'
+            - '%TEMP%'
+            - '%APPDATA%'
+    condition: selection and suspicious_path
+falsepositives:
+    - Some legitimate installers create scheduled tasks in user paths
+    - Software update mechanisms
+level: high

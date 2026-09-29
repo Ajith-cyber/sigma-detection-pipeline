@@ -1,0 +1,38 @@
+title: Certutil Used to Download File
+id: e011b7a5-9d2a-4f5c-b832-1a8b93c2f1e3
+status: test
+description: |
+    Detects certutil.exe being used to download files. Certutil is a
+    legitimate Windows certificate utility, but attackers abuse it as
+    a LOLBin (Living-off-the-Land Binary) to download payloads because
+    it bypasses many security tools that only monitor browsers.
+references:
+    - https://attack.mitre.org/techniques/T1105/
+    - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+author: YourName
+date: 2026/09/25
+tags:
+    - attack.command_and_control
+    - attack.t1105
+    - attack.defense_evasion
+    - attack.t1218
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\certutil.exe'
+        CommandLine|contains:
+            - '-urlcache'
+            - '/urlcache'
+            - '-split'
+            - '/split'
+            - '-decode'
+            - '/decode'
+            - '-decodehex'
+            - '/decodehex'
+    condition: selection
+falsepositives:
+    - Legitimate certificate operations by PKI administrators
+    - Rare — certutil with these flags is almost always suspicious
+level: high

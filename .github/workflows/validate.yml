@@ -1,0 +1,114 @@
+# This workflow runs on every Pull Request and push to main
+# It validates Sigma rules, converts them, and generates coverage
+
+name: Detection Pipeline - Validate & Convert
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rules/**'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'rules/**'
+
+jobs:
+  validate-and-convert:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Check out the repo code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Set up Python
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # Step 4: Validate all Sigma rules (syntax check)
+      - name: Validate Sigma rules
+        run: |
+          echo "=== Validating Sigma Rule Syntax ==="
+          sigma check rules/ --fail-on-error
+          echo "=== All rules passed validation ==="
+      
+      # Step 5: Convert to all SIEM formats
+      - name: Convert rules (SPL + KQL + CQL)
+        run: |
+          echo "=== Converting Sigma rules to SIEM queries ==="
+          python scripts/convert.py
+      
+      # Step 6: Generate MITRE coverage report
+      - name: Generate MITRE coverage
+        run: |
+          echo "=== Generating MITRE ATT&CK coverage ==="
+          python scripts/mitre_coverage.py
+      
+      # Step 7: Upload converted rules as artifacts (downloadable from GitHub)
+      - name: Upload converted rules
+        uses: actions/upload-artifact@v4
+        with:
+          name: converted-rules
+          path: outputs/
+      
+      # Step 8: Upload coverage report as artifact
+      - name: Upload MITRE coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: mitre-coverage
+          path: coverage/
+      
+      # Step 9: Comment on PR with summary (only on PRs)
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Count rules
+            const ruleFiles = require('child_process')
+              .execSync('find rules/ -name "*.yml" | wc -l')
+              .toString().trim();
+            
+            // Count converted files
+            const splunkFiles = require('child_process')
+              .execSync('find outputs/splunk/ -name "*.spl" 2>/dev/null | wc -l')
+              .toString().trim();
+            const sentinelFiles = require('child_process')
+              .execSync('find outputs/sentinel/ -name "*.kql" 2>/dev/null | wc -l')
+              .toString().trim();
+            const csFiles = require('child_process')
+              .execSync('find outputs/crowdstrike/ -name "*.cql" 2>/dev/null | wc -l')
+              .toString().trim();
+            
+            const body = `## Detection Pipeline Results 🔍
+            
+            | Metric | Count |
+            |--------|-------|
+            | Sigma rules | ${ruleFiles} |
+            | SPL (Splunk) | ${splunkFiles} |
+            | KQL (Sentinel) | ${sentinelFiles} |
+            | CQL (LogScale) | ${csFiles} |
+            
+            ✅ All rules validated and converted successfully.
+            
+            📊 MITRE coverage report available in workflow artifacts.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

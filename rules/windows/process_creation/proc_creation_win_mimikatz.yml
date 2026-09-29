@@ -1,0 +1,41 @@
+title: Mimikatz Credential Dumping Tool Detected
+id: a642964e-bead-4bed-8910-1bb4d563c1f3
+status: test
+description: |
+    Detects execution of Mimikatz or tools with Mimikatz-like command
+    line arguments. Mimikatz is the most common credential theft tool —
+    it extracts passwords, hashes, and Kerberos tickets from memory.
+references:
+    - https://attack.mitre.org/techniques/T1003/001/
+    - https://attack.mitre.org/software/S0002/
+author: YourName
+date: 2026/09/25
+tags:
+    - attack.credential_access
+    - attack.t1003.001
+    - attack.t1003.002
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_binary:
+        Image|endswith:
+            - '\mimikatz.exe'
+            - '\mimilib.dll'
+    selection_cmdline:
+        CommandLine|contains:
+            - 'sekurlsa::logonpasswords'
+            - 'sekurlsa::wdigest'
+            - 'sekurlsa::kerberos'
+            - 'lsadump::sam'
+            - 'lsadump::dcsync'
+            - 'token::elevate'
+            - 'privilege::debug'
+            - 'crypto::certificates'
+    selection_original_name:
+        OriginalFileName: 'mimikatz.exe'
+    condition: selection_binary or selection_cmdline or selection_original_name
+falsepositives:
+    - Security testing tools (authorized penetration testing only)
+    - Very rare in legitimate environments
+level: critical
