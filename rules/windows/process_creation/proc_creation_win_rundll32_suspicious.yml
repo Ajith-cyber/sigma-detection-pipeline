@@ -1,0 +1,25 @@
+title: Suspicious Rundll32 Execution
+id: e4a74a34-5e6a-4c35-8b5c-5e9d6f2b4a71
+status: test
+description: Detects suspicious rundll32.exe execution patterns commonly used by malware
+references:
+    - https://attack.mitre.org/techniques/T1218/011/
+author: Ajith-cyber
+date: 2026-09-29
+tags:
+    - attack.defense_evasion
+    - attack.t1218.011
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\rundll32.exe'
+    filter_legitimate:
+        CommandLine|contains:
+            - 'shell32.dll'
+            - 'setupapi.dll'
+    condition: selection and not filter_legitimate
+falsepositives:
+    - Legitimate software using rundll32 with uncommon DLLs
+level: medium
